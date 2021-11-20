@@ -26,7 +26,7 @@ def sample_monthly(request,uid,pid):
 
 @api_view(['GET'])
 def sample_weekly(request,uid,pid):
-    weekly_data =monthly[(monthly.user_id_id==float(uid)) & (monthly.portfolio_id_id == float(pid))]
+    weekly_data =weekly[(weekly.user_id_id==float(uid)) & (weekly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
     return Response(weekly_data)
@@ -34,7 +34,7 @@ def sample_weekly(request,uid,pid):
 
 @api_view(['GET'])
 def sample_quaterly(request,uid,pid):
-    quaterly_data =monthly[(monthly.user_id_id==float(uid)) & (monthly.portfolio_id_id == float(pid))]
+    quaterly_data =quaterly[(quaterly.user_id_id==float(uid)) & (quaterly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
     return Response(quaterly_data)
