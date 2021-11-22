@@ -35,7 +35,7 @@ def sample_weekly(request,uid,pid):
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
     din = {}
-    din = weekly_data
+    din = weekly_data.drop_duplicates()
     din['mean'] = weekly_data['cr'].mean()
     din['std'] = weekly_data['cr'].std()
     din = din.fillna('')
