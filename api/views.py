@@ -20,16 +20,26 @@ quaterly = pd.read_sql_table("calculated_resamplequaterly", con=engine)
 @api_view(['GET'])
 def sample_monthly(request,uid,pid):
     monthly_data =monthly[(monthly.user_id_id==float(uid)) & (monthly.portfolio_id_id == float(pid))]
-    #& (monthly.portfolio_id_id == pid)
-    #print(monthly)
-    return Response(monthly_data)
+    din = {}
+    din = monthly_data
+    din['mean'] = monthly_data['cr'].mean()
+    din['std'] = monthly_data['cr'].std()
+    din=din.fillna('')
+    print(din.fillna(''))
+    return Response(din)
+
 
 @api_view(['GET'])
 def sample_weekly(request,uid,pid):
     weekly_data =weekly[(weekly.user_id_id==float(uid)) & (weekly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
-    return Response(weekly_data)
+    din = {}
+    din = weekly_data
+    din['mean'] = weekly_data['cr'].mean()
+    din['std'] = weekly_data['cr'].std()
+    din = din.fillna('')
+    return Response(din)
 
 
 @api_view(['GET'])
@@ -37,5 +47,14 @@ def sample_quaterly(request,uid,pid):
     quaterly_data =quaterly[(quaterly.user_id_id==float(uid)) & (quaterly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
-    return Response(quaterly_data)
+    # print(quaterly_data['cr'].mean())
+    # mean_qaut=quaterly_data
+    # print(type(mean_qaut))
+    din={}
+    din=quaterly_data
+    din['mean']=quaterly_data['cr'].mean()
+    din['std']=quaterly_data['cr'].std()
+    din = din.fillna('')
+
+    return Response(din)
 
