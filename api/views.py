@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from math import sqrt
 # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -23,9 +23,10 @@ def sample_monthly(request,uid,pid):
     din = {}
     monthly_data['cr']=monthly_data['cr'].round(4)
     din = monthly_data
-    din['mean'] = monthly_data['cr'].mean().round(4)
-    din['std'] = monthly_data['cr'].std().round(4)
-    din=din.fillna('')
+    din['mean'] = (monthly_data['cr'].mean()*12).round(4)
+    din['std'] = (monthly_data['cr'].std()*sqrt(12)).round(4)
+    din['sharpe_ratio'] = (din['mean'] / din['std']).round(4)
+    din=din.fillna('NA')
     print(din.fillna(''))
     return Response(din)
 
@@ -38,10 +39,10 @@ def sample_weekly(request,uid,pid):
     din = {}
     weekly_data['cr']=weekly_data['cr'].round(4)
     din = weekly_data.drop_duplicates()
-    din['mean'] = weekly_data['cr'].mean().round(4)
-    din['std'] = weekly_data['cr'].std().round(4)
-
-    din = din.fillna('')
+    din['mean'] = (weekly_data['cr'].mean()*52).round(4)
+    din['std'] = (weekly_data['cr'].std()*sqrt(52)).round(4)
+    din['sharpe_ratio'] = (din['mean'] / din['std']).round(4)
+    din = din.fillna('NA')
     return Response(din)
 
 
@@ -56,9 +57,10 @@ def sample_quaterly(request,uid,pid):
     din={}
     quaterly_data['cr']=quaterly_data['cr'].round(4)
     din=quaterly_data
-    din['mean']=quaterly_data['cr'].mean().round(4)
-    din['std']=quaterly_data['cr'].std().round(4)
-    din = din.fillna('')
+    din['mean']=(quaterly_data['cr'].mean()*4).round(4)
+    din['std']=(quaterly_data['cr'].std()*sqrt(4)).round(4)
+    din['sharpe_ratio'] = (din['mean'] / din['std']).round(4)
+    din = din.fillna('NA')
 
     return Response(din)
 
