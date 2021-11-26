@@ -21,5 +21,6 @@ urlpatterns = [
    # path('admin/', admin.site.urls),
     path('monthly/<str:uid>/<str:pid>',sample_monthly),
     path('quaterly/<str:uid>/<str:pid>',sample_quaterly),
-    path('weekly/<str:uid>/<str:pid>',sample_weekly)
+    path('weekly/<str:uid>/<str:pid>',sample_weekly),
+    path('daily/<str:uid>/<str:pid>',daily)
 ]

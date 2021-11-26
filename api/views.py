@@ -16,6 +16,8 @@ weekly = pd.read_sql_table("calculated_resampleweekly", con=engine)
 
 quaterly = pd.read_sql_table("calculated_resamplequaterly", con=engine)
 
+daily_return=pd.read_sql_table("daily_return",con=engine)
+
 
 @api_view(['GET'])
 def sample_monthly(request,uid,pid):
@@ -63,4 +65,38 @@ def sample_quaterly(request,uid,pid):
     din = din.fillna('NA')
 
     return Response(din)
+
+@api_view(['GET'])
+def daily(request,uid,pid):
+    dri = daily_return[(daily_return['portfolio_id_id'] == float(pid)) & (daily_return['user_id_id'] == float(uid))]
+    dri['rm'] = 0
+
+    # simple moving average
+    def SMA(data, period=30, column='dr'):
+        return data[column].rolling(window=period).mean()
+
+    if len(dri) > 30:
+        dri = dri.drop(columns=['level_0'])
+        dri.reset_index(inplace=True)
+        dri['rm'] = SMA(dri, 30)
+        for i in range(0, 30):
+            dri['rm'][i] = dri['dr'][0:i].mean()
+    else:
+        dri = dri.drop(columns=['level_0'])
+        dri.reset_index(inplace=True)
+        for i in range(len(dri)):
+            dri['rm'][i] = dri['dr'][0:i].mean()
+
+    dri = dri.fillna(0.0)
+    dri['dr']=dri['dr'].round(4)
+    dri['rm']=(dri['rm']*365).round(4)
+
+
+
+    return Response(dri)
+
+
+
+
+
 
