@@ -5,36 +5,138 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import pandas as pd
 from sqlalchemy import create_engine
+import pandas as pd
+import numpy as np
+from sqlalchemy import create_engine,text
+import pandas as pd
+from pandas.tseries.frequencies import to_offset
+import os
 
 password = "jw8s0F4"
 engine = create_engine('postgresql://manuel:{}@50.116.32.224:5432/pradeep_test'.format(password))
 sql = engine.connect()
-monthly = pd.read_sql_table("calculated_resampleMonthly", con=engine)
 
-weekly = pd.read_sql_table("calculated_resampleweekly", con=engine)
+df=pd.read_sql_table("dashboard_api_portfolioperformance",con=engine)
+df['portfolio_id_id']=df['portfolio_id_id'].fillna('0.2')
+df.drop_duplicates(inplace=True)
+
+sam=df.groupby('user_id_id')
+global sam1
+sam1=df.groupby('user_id_id')
+
+# monthly = pd.read_sql_table("calculated_resampleMonthly", con=engine)
+#
+# weekly = pd.read_sql_table("calculated_resampleweekly", con=engine)
+#
+#
+# quaterly = pd.read_sql_table("calculated_resamplequaterly", con=engine)
+#
+# daily_return=pd.read_sql_table("daily_return",con=engine)
+#
+
+def resample(days):
+    for i in range(1, len(sam1.groups)):
+
+        name2 = sam1.get_group(i)
+        sample2 = name2.groupby('portfolio_id_id')
+        for j in sample2.groups:
+            kam = (sample2.get_group(j))
+            kam = kam.set_index(pd.DatetimeIndex(kam['date']))
+            kam = kam.drop(columns=['date'])
+            kam = kam.sort_values(by='date')
+            kam.index.name = 'date'
+
+            logic = {'total_value': 'first',
+                     'user_id_id': 'max',
+                     'portfolio_id_id': 'max',
+                     }
+            nam = kam.resample(str(days) + 'd', convention='end').apply(logic)
+            kam.index -= to_offset("6D")
+
+            # nam['cr']=(1+nam['total_value']).cumprod()-1
+            # nam['user_id']=kam['user_id_id']
+            # nam['portfolio_id']=kam['portfolio_id_id']
+            nam['cr'] = 0
+
+            # print(kam)
+            # nam['cr']=0
+            df1 = {}
+            nam_new = pd.DataFrame()
+            for k in range(len(nam)):
+                try:
+                    etr = (nam['total_value'][k] - nam['total_value'][k + 1]) / nam['total_value'][k]
+                    # nam.loc['cr'][k]=9
+                    df1 = nam.iloc[k]
+                    df1['cr'] = etr
+                    nam_new = nam_new.append([df1], ignore_index=False)
+                    nam_new = nam_new.drop_duplicates()
 
 
-quaterly = pd.read_sql_table("calculated_resamplequaterly", con=engine)
+                except:
+                    pass
+                nam_new.drop_duplicates(inplace=True)
+                # print(nam_new)
+                if not os.path.isfile(days + '.csv'):
+                    # nam_new=nam_new.set_index(pd.DatetimeIndex(nam_new['date']))
+                    nam_new.index.name = 'date'
+                    nam_new = nam_new.sort_values(by='date')
+                    nam_new = nam_new.drop_duplicates()
+                    nam_new.to_csv(days + '.csv', header='column_names', index='date')
+                else:  # else it exists so append without writing the header
+                    nam_new.to_csv(days + '.csv', mode='a', header=False, index='date')
+    #     #                     nam.to_csv('calculated_resampleweekly.csv',
+    #                             #con=engine,
+    #                             if_exists='append')
 
-daily_return=pd.read_sql_table("daily_return",con=engine)
+    act = pd.read_csv(days + '.csv')
+
+    act = act.set_index(pd.DatetimeIndex(act['date']))
+    act = act.drop(columns=['date'])
+    act = act.sort_values(by='date')
+    act.index.name = 'date'
+    # act=act.set_index(pd.DatetimeIndex(act['date']))
+    act.drop_duplicates(inplace=True)
+    act.fillna(0, inplace=True)
+    #act.to_csv(days + '.csv', index='date')
+
+    return act
+
+    # print(etr)
+    # print(df)
+    # print(nam)
 
 
 @api_view(['GET'])
-def sample_monthly(request,uid,pid):
+def sample_monthly(request,uid,pid,days):
+    monthly = resample(days)
+    if len(monthly)==0:
+        data=pd.DataFrame(columns=df.columns)
+        #data.insert(0,'na','na','na')
+        #data = data.columns.ffill('NA')
+        return Response(data)
+
     monthly_data =monthly[(monthly.user_id_id==float(uid)) & (monthly.portfolio_id_id == float(pid))]
     din = {}
     monthly_data['cr']=monthly_data['cr'].round(4)
     din = monthly_data
-    din['mean'] = (monthly_data['cr'].mean()*12).round(4)
-    din['std'] = (monthly_data['cr'].std()*sqrt(12)).round(4)
-    din['sharpe_ratio'] = (din['mean'] / din['std']).round(4)
+    din['Date']=din.index
+    din['mean'] = round((monthly_data['cr'].mean()*12),4)
+    din['std'] = round((monthly_data['cr'].std()*sqrt(12)),4)
+    din['sharpe_ratio'] = round((din['mean'] / din['std']),4)
     din=din.fillna('NA')
     print(din.fillna(''))
     return Response(din)
 
 
 @api_view(['GET'])
-def sample_weekly(request,uid,pid):
+def sample_weekly(request,uid,pid,days):
+    weekly = resample(days)
+    if len(weekly)==0:
+        data=pd.DataFrame(columns=df.columns)
+        #data.insert(0,'na','na','na')
+        #data = data.columns.ffill('NA')
+        return Response(data)
+
     weekly_data =weekly[(weekly.user_id_id==float(uid)) & (weekly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
@@ -49,7 +151,16 @@ def sample_weekly(request,uid,pid):
 
 
 @api_view(['GET'])
-def sample_quaterly(request,uid,pid):
+def sample_quaterly(request,uid,pid,days):
+    quaterly=resample(days)
+    if len(quaterly)==0:
+        data=pd.DataFrame(columns=df.columns)
+        #data.insert(0,'na','na','na')
+        #data = data.columns.ffill('NA')
+        return Response(data)
+
+
+
     quaterly_data =quaterly[(quaterly.user_id_id==float(uid)) & (quaterly.portfolio_id_id == float(pid))]
     #& (monthly.portfolio_id_id == pid)
     #print(monthly)
@@ -67,7 +178,16 @@ def sample_quaterly(request,uid,pid):
     return Response(din)
 
 @api_view(['GET'])
-def daily(request,uid,pid):
+def daily(request,uid,pid,days):
+    daily_return=resample(days)
+    if len(daily_return)==0:
+        data=pd.DataFrame(columns=df.columns)
+        #data.insert(0,'na','na','na')
+        #data = data.columns.ffill('NA')
+        return Response(data)
+
+
+
     dri = daily_return[(daily_return['portfolio_id_id'] == float(pid)) & (daily_return['user_id_id'] == float(uid))]
     dri['rm'] = 0
 
