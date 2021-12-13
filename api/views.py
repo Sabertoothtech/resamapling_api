@@ -87,8 +87,10 @@ def resample(days):
     #     #                     nam.to_csv('calculated_resampleweekly.csv',
     #                             #con=engine,
     #                             if_exists='append')
-
+    sample=nam_new.columns
+    print(sample)
     act = pd.read_csv(days + '.csv')
+
 
     act = act.set_index(pd.DatetimeIndex(act['date']))
     act = act.drop(columns=['date'])
@@ -97,6 +99,13 @@ def resample(days):
     # act=act.set_index(pd.DatetimeIndex(act['date']))
     act.drop_duplicates(inplace=True)
     act.fillna(0, inplace=True)
+    os.remove(days + '.csv')
+    print(len(act))
+    if len(act)==2:
+        act= act.reset_index(inplace=True)
+        print(act.columns)
+        act.columns = ['date','total_value','user_id_id','portfolio_id_id','cr']
+        return act
     #act.to_csv(days + '.csv', index='date')
 
     return act
