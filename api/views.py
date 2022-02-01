@@ -12,17 +12,21 @@ import pandas as pd
 from pandas.tseries.frequencies import to_offset
 import os
 
-password = "jw8s0F4"
-engine = create_engine('postgresql://manuel:{}@50.116.32.224:5432/pradeep_test'.format(password))
-sql = engine.connect()
 
-df=pd.read_sql_table("dashboard_api_portfolioperformance",con=engine)
+# password = "jw8s0F4"
+# global engine
+# engine = create_engine('postgresql://manuel:{}@50.116.32.224:5432/pradeep_test'.format(password))
+# sql = engine.connect()
+
+df=pd.read_csv("dashboard_api_portfolioperformance.csv")
 df['portfolio_id_id']=df['portfolio_id_id'].fillna('0.2')
 df.drop_duplicates(inplace=True)
 
 sam=df.groupby('user_id_id')
 global sam1
 sam1=df.groupby('user_id_id')
+#return print("connected at ")
+
 
 # monthly = pd.read_sql_table("calculated_resampleMonthly", con=engine)
 #
@@ -64,7 +68,9 @@ def resample(days):
             nam_new = pd.DataFrame()
             for k in range(len(nam)):
                 try:
-                    etr = (nam['total_value'][k] - nam['total_value'][k + 1]) / nam['total_value'][k]
+                    etr = ( (nam['total_value'][k] )/(nam['total_value'][k+1]))-1
+
+                           #- nam['total_value'][k + 1])
                     # nam.loc['cr'][k]=9
                     df1 = nam.iloc[k]
                     df1['cr'] = etr
@@ -87,13 +93,11 @@ def resample(days):
     #     #                     nam.to_csv('calculated_resampleweekly.csv',
     #                             #con=engine,
     #                             if_exists='append')
-    sample=nam_new.columns
-    print(sample)
     act = pd.read_csv(days + '.csv')
 
 
     act = act.set_index(pd.DatetimeIndex(act['date']))
-    act = act.drop(columns=['date'])
+    act = act.drop(columns=['date'],axis=1)
     act = act.sort_values(by='date')
     act.index.name = 'date'
     # act=act.set_index(pd.DatetimeIndex(act['date']))
@@ -102,9 +106,15 @@ def resample(days):
     os.remove(days + '.csv')
     print(len(act))
     if len(act)==2:
-        act= act.reset_index(inplace=True)
-        print(act.columns)
-        act.columns = ['date','total_value','user_id_id','portfolio_id_id','cr']
+        names = ['date', 'total_value', 'user_id_id', 'portfolio_id_id', 'cr']
+        act = act.reset_index(inplace=True)
+
+        print(act)
+        act = act.set_index(pd.DatetimeIndex(act['date']))
+        act.columns = names
+
+        print(act)
+        #act.columns = ['date','total_value','user_id_id','portfolio_id_id','cr']
         return act
     #act.to_csv(days + '.csv', index='date')
 

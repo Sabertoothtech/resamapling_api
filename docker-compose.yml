@@ -5,3 +5,7 @@ services:
     command: python manage.py runserver 0.0.0.0:9000
     ports:
       - "9000:9000"
+
+  conn:
+    build: .
+    command: python3 conn.py
