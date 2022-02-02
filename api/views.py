@@ -18,10 +18,10 @@ from math import sqrt
 # global engine
 # engine = create_engine('postgresql://manuel:{}@50.116.32.224:5432/pradeep_test'.format(password))
 # sql = engine.connect()
-
-df=pd.read_csv("dashboard_api_portfolioperformance.csv")
-df['portfolio_id_id']=df['portfolio_id_id'].fillna('0.2')
-df.drop_duplicates(inplace=True)
+#
+# df=pd.read_csv("dashboard_api_portfolioperformance.csv")
+# df['portfolio_id_id']=df['portfolio_id_id'].fillna('0.2')
+# df.drop_duplicates(inplace=True)
 
 sam=df.groupby('user_id_id')
 global sam1
