@@ -22,10 +22,10 @@ from math import sqrt
 # df=pd.read_csv("dashboard_api_portfolioperformance.csv")
 # df['portfolio_id_id']=df['portfolio_id_id'].fillna('0.2')
 # df.drop_duplicates(inplace=True)
-
-sam=df.groupby('user_id_id')
-global sam1
-sam1=df.groupby('user_id_id')
+#
+# sam=df.groupby('user_id_id')
+# global sam1
+# sam1=df.groupby('user_id_id')
 #return print("connected at ")
 
 myclient = pymongo.MongoClient("mongodb://50.116.32.224:27017/")
